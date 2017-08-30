@@ -1,5 +1,4 @@
 require 'intercom'
-require 'json'
 
 TOKEN = ENV['MY_INTERCOM_TOKEN']
 
