@@ -3,11 +3,16 @@ require 'json'
 
 TOKEN = ENV['MY_INTERCOM_TOKEN']
 
-@intercom = Intercom::Client.new(token: TOKEN)
-@me = @intercom.admins.me
+def auth_intercom
+  @intercom = Intercom::Client.new(token: TOKEN)
+end
+
+def auth_me
+	@me = @intercom.admins.me
+end
 
 def reply(convo_id)
-	@intercom.conversations.reply(id: convo_id, type: 'admin', admin_id: @me, message_type: 'comment', body: 'I just wanted to check in on the issue you were experiencing?')
+	@intercom.conversations.reply(id: convo_id, type: 'admin', admin_id: @me.id, message_type: 'comment', body: 'I just wanted to check in on the issue you were experiencing?')
 end
 
 def get_conversation_info(convo_id)
@@ -41,23 +46,29 @@ def get_conversation_info(convo_id)
 	convo_details
 end
 
-@intercom.conversations.find_all(type: 'admin', id: @me.id, open: true).each do
-	|convo|
-	puts " "
-	puts " *** *** *** *** *** "
-	puts "In the loop"
-
-	convo_id = convo.id
-	message = get_conversation_info(convo_id)
-	last_reply = message[:body].downcase
-	puts last_reply
-	if last_reply.include? "can i help with"
-		puts "Last message was from you and contained your check, repyling..."
-		reply(convo_id)
-	else
-		puts "Don't reply to this message"
-		puts " *** *** *** *** *** "
+def main
+	auth_intercom
+	auth_me
+	@intercom.conversations.find_all(type: 'admin', id: @me.id, open: true).each do
+		|convo|
 		puts " "
-		next
+		puts " *** *** *** *** *** "
+		puts "In the loop"
+
+		convo_id = convo.id
+		message = get_conversation_info(convo_id)
+		last_reply = message[:body].downcase
+		puts last_reply
+		if last_reply.include? "can i help with"
+			puts "Last message was from you and contained your check, repyling..."
+			reply(convo_id)
+		else
+			puts "Don't reply to this message"
+			puts " *** *** *** *** *** "
+			puts " "
+			next
+		end
 	end
 end
+
+main
